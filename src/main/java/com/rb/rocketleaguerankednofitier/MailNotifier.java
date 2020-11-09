@@ -49,8 +49,8 @@ public class MailNotifier{
 		builder.append("          *** New MMRs stats ***").append("\n\n\n")
 		
 			   .append("- MMR:").append("\n")
-			   .append("      -> Current       = ").append(currentMMR.getMmr()).append(String.format(" (%s)", diffMmr.getMmrStringSigned())).append("\n")
-			   .append("      -> Start of Day  = ").append(startingMmrOfDay.getMmr()).append("\n")
+			   .append("      -> Current          = ").append(currentMMR.getMmr()).append(String.format(" (%s)", diffMmr.getMmrStringSigned())).append("\n")
+			   .append("      -> Start of Day   = ").append(startingMmrOfDay.getMmr()).append("\n")
 			   .append("      -> Start of Week = ").append(startingMmrOfWeek.getMmr()).append("\n\n\n")
 			   
 			   .append("- Diff of:").append("\n")
@@ -63,7 +63,7 @@ public class MailNotifier{
 			builder.append("          *** CONGRATULATION ***").append("\n")
 				   .append("           *** Goal Reached ***").append("\n\n");
 		else	   
-			builder.append("- Points needed until goal                = ").append(pointsStillNeededOfWeek).append("\n")
+			builder.append("- Points needed until goal                         = ").append(pointsStillNeededOfWeek).append("\n")
 				   .append("- Games count needed of week (estimation) = ").append(gamesCountNeededEstimation).append("\n");
 		
 		sendSimpleMessage(subject, builder.toString());
