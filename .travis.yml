@@ -1,5 +1,5 @@
 language: java
-jdk: openjdk8
+jdk: openjdk11
 
 env:
   - DOSSIER_LIVRAISON_CIBLE="RocketLeague-MMR-Notifier"     PATH_LIVRAISON_CIBLE="~/Production_apps/Prod_Apps/$DOSSIER_LIVRAISON_CIBLE"     PROJECT_FOLDER_NAME="."     PATH_DEPLOYMENT_FILE="./deploy.sh"    TRAVIS_DEPLOYMENT_GITHUB_URL="https://raw.githubusercontent.com/Rayanox/TravisDeployment/master/deploy.sh" DEPLOY_TRAVIS_SCRIPT_NAME="deploy_travis.sh" TRAVIS_DEPLOY_SCRIPT_URL="https://raw.githubusercontent.com/Rayanox/TravisDeployment/master/$DEPLOY_TRAVIS_SCRIPT_NAME"
