@@ -46,16 +46,16 @@ public class MailNotifier{
 		String subject = String.format("%s [MMR- %s]: %s", getProgramSubjectHeader(), gameMode.getModeNameString(), diffMmr.getMmrStringSigned());
 
 		StringBuilder builder = new StringBuilder("\n");
-		builder.append("\t\t*** New MMRs stats ***").append("\n\n")
+		builder.append("          *** New MMRs stats ***").append("\n\n\n")
 		
-			   .append("- MMR:")
-			   .append("   -> Current       = ").append(currentMMR.getMmr()).append(String.format(" (%s)", diffMmr.getMmrStringSigned())).append("\n")
-			   .append("   -> Start of Day  =").append(startingMmrOfDay.getMmr()).append("\n")
-			   .append("   -> Start of Week =").append(startingMmrOfWeek.getMmr()).append("\n\\n")
+			   .append("- MMR:").append("\n")
+			   .append("      -> Current       = ").append(currentMMR.getMmr()).append(String.format(" (%s)", diffMmr.getMmrStringSigned())).append("\n")
+			   .append("      -> Start of Day  = ").append(startingMmrOfDay.getMmr()).append("\n")
+			   .append("      -> Start of Week = ").append(startingMmrOfWeek.getMmr()).append("\n\n\n")
 			   
 			   .append("- Diff of:").append("\n")
-			   .append("      -> Today = ").append(diffOfDay.getMmrStringSigned()).append("\n")
-			   .append("      -> Week  = ").append(diffOfWeek.getMmrStringSigned()).append("\n\n")
+			   .append("          -> Today = ").append(diffOfDay.getMmrStringSigned()).append("\n")
+			   .append("          -> Week  = ").append(diffOfWeek.getMmrStringSigned()).append("\n\n\n")
 			   
 			   .append("=> Goal to reach this week = ").append(mmrGoalOfWeek).append("\n\n");
 		
