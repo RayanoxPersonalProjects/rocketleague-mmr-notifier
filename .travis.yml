@@ -17,6 +17,8 @@ script:
 
 before_deploy:
   - cd target
+  - version=`git tag | tail -1`
+  - mvn versions:set -DnewVersion=$version
   - curl -o $DEPLOY_TRAVIS_SCRIPT_NAME $TRAVIS_DEPLOY_SCRIPT_URL
   - chmod u+x ./$DEPLOY_TRAVIS_SCRIPT_NAME
   - echo " ----> ECHO LS BEFORE SCRIPT DEPLOYMENT <-----"
