@@ -10,32 +10,61 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import com.rb.rocketleaguerankednofitier.model.DayStats;
+import com.rb.rocketleaguerankednofitier.model.GameMode;
 import com.rb.rocketleaguerankednofitier.model.Rank;
+import com.rb.rocketleaguerankednofitier.model.WeekStat;
 
 @Service
 public class MailNotifier{
 
 	@Autowired
+	private WeekStat weekStats;
+	
+	@Autowired
     private JavaMailSender emailSender;
+	
+	@Autowired
+	private DayStats dayStats;
 	
 	@Value("${notification.recipients.list}")
 	private String [] destinationRecipientsList;
- 
 	
-	public void notifyUpdateMmr(DayStats stats) {
-		Rank diffMmr = stats.getLastStatsDiff();
-		Rank diffOfDay = stats.getStatsDiffOfDay(diffMmr.getGameMode());
-		Rank currentMMR = stats.getCurrentStats().getMmrByMode(diffMmr.getGameMode());
-		Rank startingMmr = stats.getStartingStats().getMmrByMode(diffMmr.getGameMode());
+	public void notifyUpdateMmr() {
+		Rank diffMmr = dayStats.getLastStatsDiff();
+		GameMode gameMode = diffMmr.getGameMode();
+		Rank diffOfDay = dayStats.getStatsDiffOfDay(gameMode);
+		Rank diffOfWeek = weekStats.getStatsDiffOfWeek(gameMode);
 		
-		String subject = String.format("%s [MMR- %s] - %s", getProgramSubjectHeader(), diffMmr.getGameMode().getModeNameString(), diffMmr.getMmrStringSigned());
+		Rank currentMMR = dayStats.getCurrentStats().getRankByMode(gameMode);
+		Rank startingMmrOfDay = dayStats.getStartingStats().getRankByMode(gameMode);
+		Rank startingMmrOfWeek = weekStats.getStartingRank(gameMode);
+		int mmrGoalOfWeek = weekStats.getRankGoalOfWeek(gameMode).getMmr();
+		int gamesCountNeededEstimation = weekStats.getGameCountGoalEstimation(gameMode);
+		
+		int pointsStillNeededOfWeek = mmrGoalOfWeek-currentMMR.getMmr();
+		
+		String subject = String.format("%s [MMR- %s]: %s", getProgramSubjectHeader(), gameMode.getModeNameString(), diffMmr.getMmrStringSigned());
 
 		StringBuilder builder = new StringBuilder("\n");
 		builder.append("\t\t*** New MMRs stats ***").append("\n\n")
-			   .append("- Current MMR    = ").append(currentMMR.getMmr()).append("\n\n")
-			   .append("- Diff with last = ").append(diffMmr.getMmrStringSigned()).append("\n\n")
-			   .append("- Diff of today  = ").append(diffOfDay.getMmrStringSigned()).append("\n\n")
-			   .append("- Starting MMR   = ").append(startingMmr.getMmr()).append("\n\n");
+		
+			   .append("- MMR:")
+			   .append("   -> Current       = ").append(currentMMR.getMmr()).append(String.format(" (%s)", diffMmr.getMmrStringSigned())).append("\n")
+			   .append("   -> Start of Day  =").append(startingMmrOfDay.getMmr()).append("\n")
+			   .append("   -> Start of Week =").append(startingMmrOfWeek.getMmr()).append("\n\\n")
+			   
+			   .append("- Diff of:").append("\n")
+			   .append("      -> Today = ").append(diffOfDay.getMmrStringSigned()).append("\n")
+			   .append("      -> Week  = ").append(diffOfWeek.getMmrStringSigned()).append("\n\n")
+			   
+			   .append("=> Goal to reach this week = ").append(mmrGoalOfWeek).append("\n\n");
+		
+		if(weekStats.isWeekGoalReached(gameMode))
+			builder.append("          *** CONGRATULATION ***").append("\n")
+				   .append("           *** Goal Reached ***").append("\n\n");
+		else	   
+			builder.append("- Points needed until goal                = ").append(pointsStillNeededOfWeek).append("\n")
+				   .append("- Games count needed of week (estimation) = ").append(gamesCountNeededEstimation).append("\n");
 		
 		sendSimpleMessage(subject, builder.toString());
 	}
@@ -56,7 +85,7 @@ public class MailNotifier{
 	}
 	
 	private String getProgramSubjectHeader() {
-		return "[RL-Nofier] | ";
+		return "[RL-Notifier] | ";
 	}
 	
 	private void sendSimpleMessage(String subject, String text) {

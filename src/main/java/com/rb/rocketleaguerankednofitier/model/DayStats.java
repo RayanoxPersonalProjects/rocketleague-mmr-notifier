@@ -1,5 +1,8 @@
 package com.rb.rocketleaguerankednofitier.model;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class DayStats {
 
 	private MmrInformations startingStats;
@@ -10,13 +13,13 @@ public class DayStats {
 		if(this.currentStats == null || this.lastStats == null)
 			return null;
 		
-		return lastStats.diffWith(currentStats);
+		return currentStats.firstDiffWith(lastStats);
 	}
 	public Rank getStatsDiffOfDay(GameMode mode) {
 		if(this.currentStats == null || this.startingStats == null)
 			return null;
 		
-		return startingStats.diffWith(currentStats, mode);
+		return currentStats.diffWith(startingStats, mode);
 	}
 	
 	
@@ -32,12 +35,16 @@ public class DayStats {
 		this.lastStats = lastStats;
 	}
 
+	public Rank getCurrentRank(GameMode mode) {
+		return this.getCurrentStats().getRankByMode(mode);
+	}
+	
 	public MmrInformations getCurrentStats() {
 		return currentStats;
 	}
 
-	public void setCurrentStats(MmrInformations currentStats) {
-		this.setLastStats(this.currentStats);
+	public void updateDayStats(MmrInformations currentStats) {
+		this.setLastStats(this.currentStats != null ? this.currentStats : currentStats);
 		this.currentStats = currentStats;
 	}
 	

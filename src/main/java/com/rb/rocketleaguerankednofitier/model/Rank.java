@@ -15,6 +15,15 @@ public class Rank {
 		this.gameMode = mode;
 	}
 	
+	/**
+	 * Substract the argument rank to this rank.
+	 * @param rank
+	 * @return
+	 */
+	public Rank minus(Rank rank) {
+		return new Rank(mmr-rank.getMmr(), gameMode);
+	}
+	
 	public GameMode getGameMode() {
 		return gameMode;
 	}
@@ -25,7 +34,7 @@ public class Rank {
 		return mmr;
 	}
 	public String getMmrStringSigned() {
-		return mmr < 0 ? String.format("-%d", mmr)
+		return mmr < 0 ? String.format("%d", mmr)
 				: String.format("+%d", mmr);
 	}
 	public void setMmr(int mmr) {
@@ -37,5 +46,9 @@ public class Rank {
 		rank.setGameMode(gameMode);
 		rank.setMmr(statsNode.get(gameMode.getOrderJsonSegment()).get("stats").get("rating").get("value").asInt());
 		return rank;
+	}
+
+	public void addMmr(int pointsMmrToAdd) {
+		this.mmr+=pointsMmrToAdd;
 	}
 }

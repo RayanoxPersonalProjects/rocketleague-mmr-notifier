@@ -10,15 +10,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.rb.rocketleaguerankednofitier.model.DayStats;
+import com.rb.rocketleaguerankednofitier.model.TimeManager;
+import com.rb.rocketleaguerankednofitier.model.WeekStat;
 
 @Component
 public class Core {
-
-	private static final int TIME_SLEEP_NO_ACTIVITY_CHECKING_SECONDS = 60 + 30;
-	private static final int TIME_SLEEP_IN_GAME_CHECKING_SECONDS = 10;
 	
-	private static final int TIMEOUT_IN_GAME_MINUTES = 11;
 	private static final int HOUR_STATS_RESET = 5;
+	private static final int LIMIT_SUCCESSIVE_EXCEPTION = 5;
 		
 	@Value("${debugMode}")
 	private Boolean debugMode;
@@ -29,57 +28,69 @@ public class Core {
 	@Autowired
 	MailNotifier mailNotifier;
 	
-	private String lastDateServerUpdateSaved;
+	@Autowired
+	WeekStat weekStats;
 	
+	@Autowired
+	private TimeManager timeManager;
+	
+	@Autowired
 	private DayStats dayStats;
 	
 	private LocalDate lastDateReset; 
 	
+	private int countSuccessiveException;
+	
 	public Core() {
-		this.dayStats = new DayStats();
+		this.countSuccessiveException = 0;
 	}
 	
 	public void mainProcess() throws InterruptedException {
 		printDebug("Beginning of application");
 		
 		while(true) {
-			if(needToReset())
-				resetProcessingInfos();
-			else
-				trackerProvider.reloadInformations();
 			
-			if(!lastDateServerUpdateSaved.equals(trackerProvider.getLastTnrScore()))
-				processInGameCheckingMode();
-						
-			printDebug("Wait (NO ACTIVITY)");
-			Thread.sleep(1000 * TIME_SLEEP_NO_ACTIVITY_CHECKING_SECONDS);
-			printDebug("Loop (NO ACTIVITY)");
+			try {
+				if(needToReset())
+					resetProcessingInfos();
+				
+				if(weekStats.needToReset())
+					weekStats.resetStats();
+				
+				boolean hasMmrChanged = trackerProvider.reloadInformations();
+				if(hasMmrChanged) {
+					printDebug("Game just finished ! MMR changed");
+					weekStats.recordNewMmrGameIfWon(dayStats.getLastStatsDiff());
+					timeManager.processIsInGamePeriod();
+					mailNotifier.notifyUpdateMmr();
+				}
+				this.countSuccessiveException = 0;
+			}catch(RuntimeException e) {
+				manageException(e);
+			}
+					
+			if(this.countSuccessiveException > LIMIT_SUCCESSIVE_EXCEPTION) {
+				mailNotifier.notifyError("Due to excessive count of exception, the program stopped.");
+				System.exit(-33);
+			}
+				
+			
+			
+			printDebug("Wait...");
+			Thread.sleep(1000 * timeManager.getTimeSecondsToSleep());
+			printDebug("Looping");
 		}
+	}
+	
+	private void manageException(RuntimeException e) {
+		if(!(e.getCause() instanceof org.jsoup.HttpStatusException || e.getCause() instanceof java.net.SocketTimeoutException))
+			throw e;
+		this.countSuccessiveException++;
+		e.printStackTrace();
+//		mailNotifier.notifyError(String.format("An exception %s occured, but the successive exception limit is not reached (successive count = %d | limit = %d)", e.getCause().getClass().getName(), this.countSuccessiveException, LIMIT_SUCCESSIVE_EXCEPTION));
+		timeManager.processException();
 	}
 
-	private void processInGameCheckingMode() throws InterruptedException{
-		Instant starting = Instant.now();
-		
-		printDebug("Activity Detected ! -> Processing In Game Mode");
-		
-		while(starting.until(Instant.now(), ChronoUnit.MINUTES) < TIMEOUT_IN_GAME_MINUTES) {
-			boolean hasMmrChanged = trackerProvider.reloadInformations();
-			
-			if(hasMmrChanged) {
-				printDebug("Game just finished ! MMR changed");
-				dayStats.setCurrentStats(trackerProvider.getCurrentMmrInfos());
-				mailNotifier.notifyUpdateMmr(dayStats);
-				return;
-			}
-			
-			printDebug("Wait (IN GAME MODE)");
-			Thread.sleep(1000 * TIME_SLEEP_IN_GAME_CHECKING_SECONDS);
-			printDebug("Loop (IN GAME MODE)");
-		}
-	}
-	
-	
-	
 	/*
 	 * Privates tools methods
 	 */
@@ -101,7 +112,6 @@ public class Core {
 	private void resetProcessingInfos() {
 		printDebug("Processing Reset");
 		trackerProvider.reloadInformations();
-		lastDateServerUpdateSaved = trackerProvider.getLastTnrScore();
 		dayStats.setStartingStats(trackerProvider.getCurrentMmrInfos());
 		setLastDateReset(LocalDate.now());
 	}

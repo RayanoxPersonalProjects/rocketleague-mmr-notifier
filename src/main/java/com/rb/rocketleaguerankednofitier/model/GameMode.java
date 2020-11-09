@@ -2,7 +2,7 @@ package com.rb.rocketleaguerankednofitier.model;
 
 public enum GameMode {
 	
-	UNRANKED (1, "Foorcar 1v1"),
+	UNRANKED (1, "Unranked"),
 	
 	RANKED_FOOTCAR_1V1 (2, "Foorcar 1v1"),
 	RANKED_FOOTCAR_2V2 (3, "Foorcar 2v2"),
