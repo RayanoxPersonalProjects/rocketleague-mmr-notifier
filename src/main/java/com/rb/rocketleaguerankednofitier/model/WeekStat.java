@@ -3,13 +3,14 @@ package com.rb.rocketleaguerankednofitier.model;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.util.HashMap;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 public class WeekStat {
+
+	private static final double DEFAULT_WIN_MMR_VALUE = 10;
 
 	@Autowired
 	private DayStats dayStats;
@@ -80,10 +81,13 @@ public class WeekStat {
 
 	public int getGameCountGoalEstimation(GameMode gameMode) {
 		AverageBuilder avgBuilder = this.averagePointsWonBuilderByMode.get(gameMode);
-		int winPointsEstimated = (int) Math.round(avgBuilder.buildAverage());
+		double winPointsEstimated = avgBuilder != null 
+				? avgBuilder.buildAverage()
+				: DEFAULT_WIN_MMR_VALUE;
+		int winPointsEstimatedRounded = (int) Math.round(winPointsEstimated);
 		
 		int mmrNeeded = getMmrNeededToReachGoal(gameMode).getMmr();
-		return (int) Math.ceil((double) mmrNeeded/winPointsEstimated);
+		return (int) Math.ceil((double) mmrNeeded/winPointsEstimatedRounded);
 	}
 	
 }
