@@ -17,7 +17,7 @@ import com.rb.rocketleaguerankednofitier.model.WeekStat;
 public class Core {
 	
 	private static final int HOUR_STATS_RESET = 5;
-	private static final int LIMIT_SUCCESSIVE_EXCEPTION = 5;
+	private static final int LIMIT_SUCCESSIVE_EXCEPTION = 10;
 		
 	@Value("${debugMode}")
 	private Boolean debugMode;
