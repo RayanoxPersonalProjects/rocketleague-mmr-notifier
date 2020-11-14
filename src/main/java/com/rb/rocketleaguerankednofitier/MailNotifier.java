@@ -29,6 +29,9 @@ public class MailNotifier{
 	@Value("${notification.recipients.list}")
 	private String [] destinationRecipientsList;
 	
+	@Value("${spring.mail.username}")
+	private String senderEmail;
+	
 	public void notifyUpdateMmr() {
 		Rank diffMmr = dayStats.getLastStatsDiff();
 		GameMode gameMode = diffMmr.getGameMode();
@@ -90,7 +93,7 @@ public class MailNotifier{
 	
 	private void sendSimpleMessage(String subject, String text) {
 		SimpleMailMessage message = new SimpleMailMessage(); 
-		message.setFrom("noreply@baeldung.com");
+		message.setFrom(senderEmail);
 		message.setSubject(subject); 
 		message.setText(text);
 		
